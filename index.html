@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AquaGuard 360 (Demo)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{color-scheme:light;
+ --bg:#ffffff;--card:#ffffff;--text:#10283b;--muted:#5a7185;--line:#e2eaf2;--grid:#e8eef5;
+ --blue:#1668d1;--blue-soft:#eaf3ff;--green:#168a4b;--yellow:#b87f00;--red:#d02f2f;
+ --green-bg:rgba(22,138,75,.12);--yellow-bg:rgba(224,161,0,.16);--red-bg:rgba(208,47,47,.12);
+ --purple:#6b3fe0;--teal:#0b8793;--orange:#c2610a;--pink:#d63384}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;
+ --bg:#0d1a26;--card:#13232f;--text:#e8f1f8;--muted:#9db2c4;--line:#233646;--grid:#233646;
+ --blue:#5aa2f5;--blue-soft:#18304a;--green:#3ccf7a;--yellow:#f0b429;--red:#ff7070;
+ --green-bg:rgba(60,207,122,.15);--yellow-bg:rgba(240,180,41,.16);--red-bg:rgba(255,112,112,.15);
+ --purple:#b39dff;--teal:#4fd1c5;--orange:#ffa94d;--pink:#ff7ab8}}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:17px;line-height:1.5}
+.hide{display:none!important}
+.muted{color:var(--muted)}.small{font-size:14px}
+a{color:var(--blue);text-decoration:none;cursor:pointer}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.between{justify-content:space-between}.end{justify-content:flex-end}
+.demo{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--blue-soft);color:var(--blue);border:1px solid var(--blue);white-space:nowrap}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:22px;color:var(--blue)}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+.box{width:100%;max-width:440px;position:relative;overflow:hidden}.wide{max-width:720px}
+.box:before{content:"";position:absolute;left:0;right:0;top:0;height:6px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--purple),var(--orange),var(--pink))}
+h1{font-size:28px;margin:0;line-height:1.2}h2{font-size:20px;margin:0}
+.f{margin-bottom:14px}.f label{display:block;font-size:14px;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;padding:12px 14px;font-size:16px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-family:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.btn{background:var(--blue);color:#fff;border:1px solid var(--blue);border-radius:10px;padding:11px 20px;font-size:16px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;color:var(--blue)}
+.btn.big{width:100%;padding:14px;font-size:18px}
+.btn.sm{padding:6px 12px;font-size:14px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.danger{background:var(--red);border-color:var(--red)}
+.pw{position:relative}.pw button{position:absolute;right:8px;top:7px;background:none;border:0;color:var(--blue);font-weight:600;cursor:pointer;padding:6px;font-family:inherit}
+.or{text-align:center;color:var(--muted);font-size:14px;margin:14px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.bar{height:8px;background:var(--blue-soft);border-radius:8px;margin:8px 0 20px;overflow:hidden}.bar i{display:block;height:100%;background:var(--blue);border-radius:8px}
+.err{color:var(--red);min-height:22px;font-size:15px;margin:0 0 8px}
+.sw{display:flex!important;align-items:center;gap:10px;color:var(--text)!important;font-size:16px!important;padding:10px 0}.sw input{width:22px;height:22px}
+.summary{background:var(--blue-soft);border-radius:12px;padding:14px 16px;margin:6px 0 18px;font-size:15px}
+.summary b{display:block;margin-bottom:4px}
+/* app layout */
+#app{min-height:100vh}
+#app:before{content:"";display:block;height:6px;background:linear-gradient(90deg,var(--blue),var(--teal),var(--purple),var(--orange),var(--pink))}
+#menuBtn{position:relative;width:48px;height:48px;flex:none;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px}
+#menuBtn i{display:block;width:22px;height:3px;border-radius:3px;background:var(--blue)}
+#menuBtn i:nth-child(2){background:var(--teal)}#menuBtn i:nth-child(3){background:var(--pink)}
+#menuBtn .pill{position:absolute;top:-7px;right:-7px}
+#side{position:fixed;top:0;left:0;bottom:0;width:290px;max-width:85vw;background:var(--card);border-right:1px solid var(--line);padding:20px 14px;z-index:30;transform:translateX(-105%);transition:transform .22s ease;overflow-y:auto;box-shadow:0 0 30px rgba(0,0,0,.2)}
+#side.open{transform:none}
+@media (prefers-reduced-motion:reduce){#side{transition:none}}
+#scrim{position:fixed;inset:0;background:rgba(10,25,40,.45);z-index:20}
+#side .head{display:flex;justify-content:space-between;align-items:center;margin:0 6px 20px}
+#side .x{background:none;border:0;color:var(--muted);font-size:15px;cursor:pointer;font-family:inherit;padding:6px 8px}
+#side button.nav{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:14px;font-size:17px;color:var(--text);cursor:pointer;font-family:inherit;margin-bottom:6px}
+#side button.nav:before{content:"";width:12px;height:12px;border-radius:50%;background:var(--pc);flex:none}
+#side button.nav .lab{flex:1}
+#side button.nav:hover{background:var(--blue-soft)}
+#side button.nav.on{background:color-mix(in srgb,var(--pc) 14%,transparent);font-weight:700;box-shadow:inset 4px 0 0 var(--pc)}
+.pn{display:inline-block;margin-top:8px;font-size:13px;font-weight:700;padding:3px 12px;border-radius:999px;background:color-mix(in srgb,var(--pc,var(--blue)) 15%,transparent);color:var(--pc,var(--blue))}
+.card.ac{border-top:4px solid var(--ac,var(--blue))}
+.pill{background:var(--red);color:#fff;border-radius:999px;font-size:12px;padding:1px 8px;font-weight:700}
+main{padding:24px 28px 60px;min-width:0;max-width:1100px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.page>*+*{margin-top:18px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.stat{border:1px solid var(--line);border-top:4px solid var(--ac,var(--blue));border-radius:14px;padding:16px 18px;background:var(--card)}
+.stat .lbl{color:var(--muted);font-size:15px}
+.stat .val{font-size:32px;font-weight:700;line-height:1.2;margin:2px 0;color:var(--ac,var(--text))}
+.stat .val small{font-size:16px;font-weight:500;color:var(--muted)}
+.stat .sub{font-size:14px;color:var(--muted)}
+.stat.a-blue{--ac:var(--blue)}.stat.a-purple{--ac:var(--purple)}.stat.a-teal{--ac:var(--teal)}.stat.a-orange{--ac:var(--orange)}
+.stat.g{--ac:var(--green);background:var(--green-bg);border-color:transparent;border-top-color:var(--ac)}
+.stat.y{--ac:var(--yellow);background:var(--yellow-bg);border-color:transparent;border-top-color:var(--ac)}
+.stat.r{--ac:var(--red);background:var(--red-bg);border-color:transparent;border-top-color:var(--ac)}
+.stat .val.txt{font-size:23px}
+details.more{border:1px solid var(--line);border-radius:14px;padding:12px 18px}
+details summary{cursor:pointer;font-weight:600;color:var(--blue)}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.mini div{font-size:14px;color:var(--muted)}.mini b{display:block;font-size:22px;color:var(--text)}
+.mini div:nth-child(1) b{color:var(--blue)}.mini div:nth-child(2) b{color:var(--purple)}.mini div:nth-child(3) b{color:var(--teal)}.mini div:nth-child(4) b{color:var(--orange)}
+.cv{position:relative;height:290px;margin-top:12px}
+.why{margin:10px 0 0;color:var(--muted);font-size:15px}
+.live{font-size:13px;font-weight:700;color:var(--green);display:flex;align-items:center;gap:6px}
+.live:before{content:"";width:9px;height:9px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.live:before{animation:none}}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{background:none;border:0;padding:8px 16px;font-size:15px;color:var(--text);cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--blue);color:#fff;font-weight:600}
+.banner{border-radius:12px;padding:14px 18px;font-size:17px}
+.banner.g{background:var(--green-bg);color:var(--green)}.banner.y{background:var(--yellow-bg);color:var(--yellow)}.banner.r{background:var(--red-bg);color:var(--red)}
+.alert{display:grid;grid-template-columns:14px 1fr auto;gap:12px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.dot{width:14px;height:14px;border-radius:50%}.dot.High{background:var(--red)}.dot.Medium{background:var(--yellow)}.dot.Low{background:var(--green)}
+.alert .t{font-weight:600}.alert .m{font-size:14px;color:var(--muted)}
+.chip{display:inline-block;font-size:13px;font-weight:600;padding:2px 10px;border-radius:999px;margin-left:6px}
+.chip.New{background:var(--red-bg);color:var(--red)}.chip.Acknowledged{background:var(--yellow-bg);color:var(--yellow)}.chip.Resolved{background:var(--green-bg);color:var(--green)}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:14px}td.n,th.n{text-align:right}
+tr.me td{background:var(--blue-soft);font-weight:700}
+.filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}.filters .f{margin:0}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;font-size:15px;z-index:9}
+@media (max-width:820px){
+ main{padding:18px 14px 60px}h1{font-size:23px}
+ .grid2{grid-template-columns:1fr}
+ .alert{grid-template-columns:14px 1fr}.alert .acts{grid-column:1/-1}
+ .stat .val{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="v-login" class="center"><div class="card box">
+ <div class="row between" style="margin-bottom:6px">
+  <div class="brand"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z" fill="currentColor"/></svg>AquaGuard 360</div>
+  <span class="demo">DEMO DATA</span>
+ </div>
+ <p class="muted" style="margin:0 0 18px">Smart water monitoring and leak detection</p>
+ <button class="btn big" id="demoBtn">Continue with DEMO MODE</button>
+ <div class="or">or log in with any email and password</div>
+ <div class="f hide" id="nameF"><label for="lname">Your name</label><input id="lname" placeholder="Priya"></div>
+ <div class="f"><label for="email">Email</label><input id="email" type="email" placeholder="you@example.com"></div>
+ <div class="f"><label for="pass">Password</label><div class="pw"><input id="pass" type="password" placeholder="Any password works"><button type="button" id="showPw">Show</button></div></div>
+ <div class="f hide" id="pass2F"><label for="pass2">Confirm password</label><input id="pass2" type="password"></div>
+ <button class="btn big" id="loginBtn">Login</button>
+ <div class="row between small" style="margin-top:14px"><a id="toSignup">Sign up</a><a id="forgot">Forgot password?</a></div>
+ <p id="loginMsg" class="small muted" style="margin:10px 0 0"></p>
+</div></div>
+
+<!-- ============ SETUP 1 ============ -->
+<div id="v-s1" class="center hide"><div class="card box wide">
+ <div class="row between"><div class="brand"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z" fill="currentColor"/></svg>AquaGuard 360</div><span class="demo">DEMO DATA</span></div>
+ <h2 style="margin-top:16px">Step 1 of 2: Your water system</h2>
+ <div class="bar"><i style="width:50%"></i></div>
+ <div id="s1_fields" class="grid2"></div>
+ <p class="err" id="s1_err"></p>
+ <div class="row end"><button class="btn ghost" id="s1Back">Back</button><button class="btn" id="s1Next">Continue</button></div>
+</div></div>
+
+<!-- ============ SETUP 2 ============ -->
+<div id="v-s2" class="center hide"><div class="card box wide">
+ <div class="row between"><div class="brand"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z" fill="currentColor"/></svg>AquaGuard 360</div><span class="demo">DEMO DATA</span></div>
+ <h2 style="margin-top:16px">Step 2 of 2: Alert settings</h2>
+ <div class="bar"><i style="width:100%"></i></div>
+ <div id="s2_fields" class="grid2"></div>
+ <p class="err" id="s2_err"></p>
+ <div class="summary" id="s2_sum"></div>
+ <div class="row end"><button class="btn ghost" id="s2Back">Back</button><button class="btn ghost" id="s2Edit">Edit</button><button class="btn" id="s2Finish">Finish</button></div>
+</div></div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="hide">
+ <div id="scrim" class="hide"></div>
+ <aside id="side" aria-label="Main menu">
+  <div class="head"><div class="brand"><svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 2.5C12 2.5 5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z" fill="currentColor"/></svg>AquaGuard 360</div><button class="x" id="menuClose">Close</button></div>
+  <button class="nav" data-p="dash" style="--pc:var(--blue)"><span class="lab">Dashboard</span></button>
+  <button class="nav" data-p="wq" style="--pc:var(--teal)"><span class="lab">Water Quality</span></button>
+  <button class="nav" data-p="al" style="--pc:var(--orange)"><span class="lab">Alerts and Leaks</span><span class="pill hide" id="navBadge">1</span></button>
+  <button class="nav" data-p="rep" style="--pc:var(--purple)"><span class="lab">Reports</span></button>
+  <button class="nav" data-p="set" style="--pc:var(--pink)"><span class="lab">Settings</span></button>
+ </aside>
+ <main>
+  <header class="top">
+   <div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:14px">
+    <button id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="side"><i></i><i></i><i></i><span class="pill hide" id="menuDot">0</span></button>
+    <div><h1 id="welcome">Welcome</h1><div class="muted" id="topSub"></div><span class="pn" id="pageName" style="--pc:var(--blue)">Dashboard</span></div>
+   </div>
+   <div class="row"><span class="demo">DEMO DATA</span><button class="btn ghost sm" id="logout">Logout</button></div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section class="page" id="p-dash">
+   <div class="cards">
+    <div class="stat a-blue" data-ac="a-blue"><div class="lbl">Flow rate</div><div class="val"><span id="cFlow">42</span> <small>L/min</small></div><div class="sub">Water moving through the main pipe</div></div>
+    <div class="stat a-purple" data-ac="a-purple"><div class="lbl">Water used today</div><div class="val"><span id="cUsed">11,400</span> <small>L</small></div><div class="sub">Daily target: <span id="cTarget">18,000</span> L</div></div>
+    <div class="stat a-teal" data-ac="a-teal" id="cTankBox"><div class="lbl">Tank level</div><div class="val"><span id="cTank">68</span><small>%</small></div><div class="sub" id="cTankSub">6,800 L in each tank</div></div>
+    <div class="stat g"><div class="lbl">Water quality</div><div class="val txt">Good</div><div class="sub">pH, cloudiness and temperature are safe</div></div>
+    <div class="stat y" id="cLeakBox"><div class="lbl">Leak status</div><div class="val txt" id="cLeak">Suspected leak (last night)</div><div class="sub" id="cLeakSub">Acknowledged. Please inspect.</div></div>
+    <div class="stat a-orange" data-ac="a-orange" id="cScoreBox"><div class="lbl">Water-saving score</div><div class="val"><span id="cScore">72</span><small>/100</small></div><div class="sub">Lower because of last night's leak</div></div>
+   </div>
+   <details class="more"><summary>More details</summary>
+    <div class="mini">
+     <div>Pipe speed<b>1.2 m/s</b></div>
+     <div>Used this week<b id="dWeek">96,000 L</b></div>
+     <div>Used this month<b id="dMonth">410,000 L</b></div>
+     <div>Water wasted<b>2,500 L</b></div>
+    </div>
+   </details>
+   <div class="card ac" style="--ac:var(--blue)"><div class="row between"><h2>Live water flow today</h2><span class="live">Live</span></div>
+    <div class="cv"><canvas id="cvFlow"></canvas></div>
+    <p class="why">This line shows how fast water flows. The red bump at night means water was moving when nobody should be using it.</p></div>
+   <div class="card ac" style="--ac:var(--purple)"><div class="row between"><h2>Water used</h2>
+     <div class="seg" id="period"><button data-k="today" class="on">Today</button><button data-k="7">7 days</button><button data-k="30">30 days</button></div></div>
+    <div class="cv"><canvas id="cvCons"></canvas></div>
+    <p class="why" id="consWhy"></p></div>
+   <div class="card ac" style="--ac:var(--teal)"><h2>Tank level</h2>
+    <div class="cv"><canvas id="cvTank"></canvas></div>
+    <p class="why">The tank empties as people use water and refills when the pump runs. The red zone is the low-water warning.</p></div>
+  </section>
+
+  <!-- WATER QUALITY -->
+  <section class="page hide" id="p-wq">
+   <div class="banner g">Water quality is good today.</div>
+   <div class="card ac" style="--ac:var(--green)">
+    <div class="seg" id="wqTabs"><button data-k="ph" class="on">pH</button><button data-k="turb">Turbidity</button><button data-k="temp">Temperature</button></div>
+    <div class="banner y hide" id="wqNote" style="margin-top:14px">Yesterday, turbidity was close to the safe limit (4.4 of 5 NTU). It is back to normal today.</div>
+    <div class="cv"><canvas id="cvWQ"></canvas></div>
+    <p class="why" id="wqWhy"></p>
+   </div>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="page hide" id="p-al">
+   <div class="banner" id="alSentence"></div>
+   <div class="card ac" style="--ac:var(--orange)"><h2>Last 7 days</h2>
+    <div class="cv"><canvas id="cvTL"></canvas></div>
+    <p class="why">Each bar is one day. Green is normal, red is a suspected leak, yellow is acknowledged, and blue is resolved.</p></div>
+   <div class="card ac" style="--ac:var(--pink)"><h2 style="margin-bottom:14px">Alerts</h2><div id="alertList"></div></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="page hide" id="p-rep">
+   <div class="card ac" style="--ac:var(--purple)">
+    <h2 style="margin-bottom:14px">Daily water report</h2>
+    <div class="filters">
+     <div class="f"><label for="rFrom">From</label><input type="date" id="rFrom"></div>
+     <div class="f"><label for="rTo">To</label><input type="date" id="rTo"></div>
+     <button class="btn" id="rDl">Download spreadsheet</button>
+    </div>
+    <div class="scroll" style="margin-top:16px"><table><thead><tr><th>Date</th><th class="n">Water used (L)</th><th class="n">Daily target (L)</th><th class="n">Peak flow (L/min)</th><th class="n">Water wasted (L)</th></tr></thead><tbody id="rBody"></tbody></table></div>
+    <p class="why">Each row is one day. "Water wasted" is the extra water that flowed during a suspected leak.</p>
+   </div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="page hide" id="p-set">
+   <div class="card ac" style="--ac:var(--pink)">
+    <h2 style="margin-bottom:14px">Your settings</h2>
+    <div class="grid2" id="st_f1"></div>
+    <div class="grid2" id="st_f2"></div>
+    <p class="err" id="st_err"></p>
+    <button class="btn" id="stSave">Save settings</button>
+   </div>
+   <div class="card ac" style="--ac:var(--orange)">
+    <h2>Demo Controls</h2>
+    <p class="muted" style="margin:6px 0 14px">Use these buttons while presenting. Demo leak is <b id="leakState">OFF</b>.</p>
+    <div class="row"><button class="btn danger" id="bStart">Start demo leak</button><button class="btn" id="bStop">Stop demo leak</button><button class="btn ghost" id="bReset">Reset demo</button></div>
+   </div>
+   <details class="more"><summary>Compare with other buildings (demo data)</summary>
+    <div class="scroll"><table style="margin-top:10px"><thead><tr><th>Rank</th><th>Building</th><th class="n">Water-saving score</th></tr></thead><tbody id="rank"></tbody></table></div>
+   </details>
+  </section>
+ </main>
+</div>
+<div id="toast" class="hide"></div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt=n=>Math.round(n).toLocaleString('en-IN');
+const hr=h=>h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM';
+const HOURS=Array.from({length:19},(_,i)=>hr(i));
+
+/* ---------- fake data (one story everywhere) ---------- */
+const initialCfg={name:'Sunrise Apartments',type:'Apartment',people:120,tanks:2,tankL:10000,pipe:50,target:18000,source:'Demo Data',loc:'Hyderabad, India',
+ phMin:6.5,phMax:8.5,turbMax:5,lowTank:20,highFlow:60,sens:'Medium',tMin:15,tMax:30,emailOn:true,email:'admin@sunrise-apartments.demo'};
+let cfg={...initialCfg};
+const flowBase=[2,16,17,15,2,4,16,24,21,12,6,5,8,7,5,4,6,18,42];
+const tankBase=[80,76,72,68,66,90,84,72,62,58,56,55,53,78,76,75,73,70,68];
+const yest=[120,100,100,110,110,240,980,1450,1300,720,380,310,500,420,300,250,400,1100,1700];
+let flow=flowBase.slice(),tank=tankBase.slice();
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const r1=rng(7),r2=rng(21),r3=rng(5);
+const raw=Array.from({length:23},()=>1+(r1()-.5)*.16),sr=raw.reduce((a,b)=>a+b,0);
+const first=raw.map(x=>Math.round(x/sr*314000));first[22]+=314000-first.reduce((a,b)=>a+b,0);
+const days30=[...first,14300,13900,15100,14200,13800,13300,11400];           /* sums to 410,000 */
+const prev30=Array.from({length:30},()=>Math.round(14900*(1+(r2()-.5)*.14)));
+const peak30=days30.map((_,i)=>i===29?42:Math.round(24+r3()*10));
+const waste30=days30.map((_,i)=>i===29?2500:i===25?900:0);
+const dayAt=i=>{const d=new Date();d.setDate(d.getDate()-(29-i));return d};
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const dShort=d=>d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const dWeek=d=>d.toLocaleDateString('en-IN',{weekday:'short'});
+const initialAlerts=()=>[
+ {id:1,title:'Night-time flow detected (1–4 AM): suspected leak, please inspect',when:'Today, 1:40 AM',sev:'High',status:'Acknowledged'},
+ {id:2,title:'Turbidity close to the safe limit (4.4 of 5 NTU)',when:'Yesterday, 3:15 PM',sev:'Medium',status:'New'},
+ {id:3,title:'Tank 2 below 20%',when:'3 days ago, 6:05 AM',sev:'Medium',status:'Resolved'},
+ {id:4,title:'Sensor not sending data for 5 minutes (Pipe sensor B)',when:'3 days ago, 9:30 PM',sev:'Low',status:'Resolved'},
+ {id:5,title:'Steady night-time flow: suspected leak, please inspect',when:'4 days ago, 2:10 AM',sev:'High',status:'Resolved'}];
+let alerts=initialAlerts();
+const S={page:'dash',leak:false,score:72,demoId:null,period:'today',wq:'ph',user:'Demo Admin'};
+
+/* ---------- helpers ---------- */
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('hide'),2400)}
+function view(id){['v-login','v-s1','v-s2','app'].forEach(v=>$('#'+(v==='app'?'app':v)).classList.toggle('hide',v!==id));window.scrollTo(0,0)}
+const C={};
+function chart(id,conf){if(C[id])C[id].destroy();Chart.defaults.color=css('--muted');Chart.defaults.borderColor=css('--grid');Chart.defaults.font.size=13;
+ conf.options=Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false}},conf.options);
+ C[id]=new Chart(document.getElementById(id),conf);return C[id]}
+const yAx=(t,extra)=>Object.assign({title:{display:true,text:t},grid:{color:css('--grid')}},extra||{});
+const tipUnit=u=>({callbacks:{label:c=>c.parsed.y==null?null:c.dataset.label+': '+Number(c.parsed.y).toLocaleString('en-IN')+' '+u}});
+
+/* ---------- forms ---------- */
+const F1=[['name','Building name','text'],['type','Building type','select',['Household','College','Apartment','Industry','Other']],['people','Number of people','number'],['tanks','Number of tanks','number'],['tankL','Tank size (litres each)','number'],['pipe','Pipe diameter (mm)','number'],['target','Daily water target (litres)','number'],['source','Data source','select',['Demo Data','Real Device']],['loc','Location','text']];
+const F2=[['phMin','Lowest safe pH','number'],['phMax','Highest safe pH','number'],['turbMax','Highest cloudiness (NTU)','number'],['lowTank','Low tank warning (%)','number'],['highFlow','High flow limit (L/min)','number'],['sens','Leak sensitivity','select',['Low','Medium','High']],['tMin','Lowest safe temperature (°C)','number'],['tMax','Highest safe temperature (°C)','number'],['emailOn','Email alerts','toggle'],['email','Alert email address','email']];
+function renderFields(el,defs,p){el.innerHTML=defs.map(([k,l,t,o])=>{const id=p+'_'+k;let inp;
+ if(t==='select')inp=`<select id="${id}">${o.map(x=>`<option${cfg[k]==x?' selected':''}>${x}</option>`).join('')}</select>`;
+ else if(t==='toggle')inp=`<label class="sw"><input type="checkbox" id="${id}" ${cfg[k]?'checked':''}><span>${cfg[k]?'On':'Off'}</span></label>`;
+ else inp=`<input id="${id}" type="${t}" value="${cfg[k]}" ${t==='number'?'step="any"':''}>`;
+ return `<div class="f"><label for="${id}">${l}</label>${inp}</div>`}).join('')}
+function readFields(defs,p){defs.forEach(([k,,t])=>{const e=document.getElementById(p+'_'+k);if(!e)return;cfg[k]=t==='toggle'?e.checked:t==='number'?Number(e.value):e.value})}
+function validate(defs,p){for(const [k,l,t] of defs){const e=document.getElementById(p+'_'+k);if(!e)continue;
+ if(t==='text'&&k==='name'&&!e.value.trim())return 'Please enter a building name.';
+ if(t==='number'&&!(Number(e.value)>0))return l+' must be a number above 0.'}return ''}
+document.addEventListener('change',e=>{if(e.target.matches('.sw input'))e.target.nextElementSibling.textContent=e.target.checked?'On':'Off'});
+function summary(){return `<b>Your setup</b>${cfg.name} (${cfg.type}), ${cfg.people} people, ${cfg.tanks} tanks of ${fmt(cfg.tankL)} L, target ${fmt(cfg.target)} L a day.<br>Alerts: pH ${cfg.phMin} to ${cfg.phMax}, cloudiness up to ${cfg.turbMax} NTU, tank below ${cfg.lowTank}%, flow above ${cfg.highFlow} L/min, temperature ${cfg.tMin} to ${cfg.tMax} °C, leak sensitivity ${cfg.sens}, email alerts ${cfg.emailOn?'on':'off'}.`}
+
+/* ---------- login and setup flow ---------- */
+let signup=false;
+$('#showPw').onclick=()=>{const p=$('#pass');p.type=p.type==='password'?'text':'password';$('#showPw').textContent=p.type==='password'?'Show':'Hide'};
+$('#toSignup').onclick=()=>{signup=!signup;$('#nameF').classList.toggle('hide',!signup);$('#pass2F').classList.toggle('hide',!signup);$('#loginBtn').textContent=signup?'Create account':'Login';$('#toSignup').textContent=signup?'I already have an account':'Sign up';$('#loginMsg').textContent=''};
+$('#forgot').onclick=()=>{$('#loginMsg').textContent='Demo only: a reset link would be sent to your email.'};
+$('#loginBtn').onclick=()=>{const em=$('#email').value.trim(),nm=$('#lname').value.trim();
+ if(signup&&$('#pass').value!==$('#pass2').value){$('#loginMsg').textContent='The two passwords do not match.';return}
+ S.user=signup&&nm?nm:em?em.split('@')[0].replace(/^./,c=>c.toUpperCase()):'Admin';
+ renderFields($('#s1_fields'),F1,'s1');view('v-s1')};
+$('#demoBtn').onclick=()=>{S.user='Demo Admin';enterApp()};
+$('#s1Back').onclick=()=>view('v-login');
+$('#s1Next').onclick=()=>{const e=validate(F1,'s1');$('#s1_err').textContent=e;if(e)return;readFields(F1,'s1');renderFields($('#s2_fields'),F2,'s2');$('#s2_sum').innerHTML=summary();view('v-s2')};
+$('#s2Back').onclick=()=>{renderFields($('#s1_fields'),F1,'s1');view('v-s1')};
+$('#s2_fields').addEventListener('input',()=>{readFields(F2,'s2');$('#s2_sum').innerHTML=summary()});
+$('#s2_fields').addEventListener('change',()=>{readFields(F2,'s2');$('#s2_sum').innerHTML=summary()});
+$('#s2Edit').onclick=()=>{window.scrollTo(0,0);const f=$('#s2_fields input');if(f)f.focus()};
+$('#s2Finish').onclick=()=>{const e=validate(F2,'s2');$('#s2_err').textContent=e;if(e)return;readFields(F2,'s2');enterApp()};
+$('#logout').onclick=()=>view('v-login');
+
+/* ---------- app shell ---------- */
+function enterApp(){view('app');$('#welcome').textContent='Welcome, '+S.user;updateTop();updateCards();show('dash',true)}
+function updateTop(){$('#topSub').textContent=cfg.name+'  |  '+new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'  |  Last updated just now'}
+function openMenu(){$('#side').classList.add('open');$('#scrim').classList.remove('hide');$('#menuBtn').setAttribute('aria-expanded','true')}
+function closeMenu(){$('#side').classList.remove('open');$('#scrim').classList.add('hide');$('#menuBtn').setAttribute('aria-expanded','false')}
+$('#menuBtn').onclick=()=>$('#side').classList.contains('open')?closeMenu():openMenu();
+$('#scrim').onclick=closeMenu;$('#menuClose').onclick=closeMenu;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+$$('#side button[data-p]').forEach(b=>b.onclick=()=>show(b.dataset.p,true));
+function show(p,fresh){S.page=p;$$('.page').forEach(x=>x.classList.toggle('hide',x.id!=='p-'+p));
+ $$('#side button[data-p]').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+ const nb=$('#side button[data-p="'+p+'"]');$('#pageName').textContent=nb.querySelector('.lab').textContent;$('#pageName').style.setProperty('--pc',nb.style.getPropertyValue('--pc'));closeMenu();
+ if(p==='dash')drawDash();else if(p==='wq')drawWQ();else if(p==='al'){renderAlerts();drawTL()}
+ else if(p==='rep'&&fresh)initReport();else if(p==='set'&&fresh)drawSettings();
+ if(fresh)window.scrollTo(0,0)}
+
+/* ---------- cards ---------- */
+function setBox(id,cls){const b=$(id);b.className='stat '+(b.dataset.ac||'')+' '+cls}
+function updateCards(){
+ $('#cFlow').textContent=Math.round(flow[18]);
+ $('#cTarget').textContent=fmt(cfg.target);
+ const tp=tank[18];$('#cTank').textContent=tp;$('#cTankSub').textContent=fmt(tp*cfg.tankL/100)+' L in each tank';
+ setBox('#cTankBox',tp<cfg.lowTank?'r':'');
+ const a1=alerts.find(a=>a.id===1).status;
+ if(S.leak){setBox('#cLeakBox','r');$('#cLeak').textContent='Suspected leak (now)';$('#cLeakSub').textContent='New alert. Please inspect.'}
+ else if(a1==='Resolved'){setBox('#cLeakBox','g');$('#cLeak').textContent='Resolved';$('#cLeakSub').textContent='Flow is back to normal.'}
+ else if(a1==='New'){setBox('#cLeakBox','r');$('#cLeak').textContent='Suspected leak (last night)';$('#cLeakSub').textContent='Not yet acknowledged.'}
+ else{setBox('#cLeakBox','y');$('#cLeak').textContent='Suspected leak (last night)';$('#cLeakSub').textContent='Acknowledged. Please inspect.'}
+ $('#cScore').textContent=S.score;setBox('#cScoreBox',S.score<65?'r':'');
+ const n=alerts.filter(a=>a.status==='New').length;$('#navBadge').textContent=n;$('#navBadge').classList.toggle('hide',!n);$('#menuDot').textContent=n;$('#menuDot').classList.toggle('hide',!n);
+ $('#dWeek').textContent=fmt(days30.slice(23).reduce((a,b)=>a+b,0))+' L';$('#dMonth').textContent=fmt(days30.reduce((a,b)=>a+b,0))+' L'}
+
+/* ---------- dashboard charts ---------- */
+function leakPts(){const idx=[1,2,3];if(S.leak)idx.push(17,18);return flow.map((v,i)=>idx.includes(i)?v:null)}
+function drawDash(){
+ chart('cvFlow',{type:'line',data:{labels:HOURS,datasets:[
+  {label:'Flow',data:flow,borderColor:css('--blue'),backgroundColor:'rgba(22,104,209,.12)',fill:true,tension:.35,pointRadius:2},
+  {label:'Suspected leak',data:leakPts(),borderColor:css('--red'),backgroundColor:css('--red'),pointRadius:5,borderWidth:3,spanGaps:false,tension:.35}]},
+  options:{scales:{y:yAx('Litres per minute (L/min)',{beginAtZero:true}),x:{grid:{display:false}}},plugins:{legend:{position:'bottom'},tooltip:tipUnit('L/min')}}});
+ drawCons();
+ chart('cvTank',{type:'line',data:{labels:HOURS,datasets:[
+  {label:'Tank level',data:tank,borderColor:css('--teal'),backgroundColor:'rgba(14,154,167,.16)',fill:true,tension:.3,pointRadius:2},
+  {label:'Low-water zone (below '+cfg.lowTank+'%)',data:HOURS.map(()=>cfg.lowTank),borderColor:css('--red'),borderDash:[6,4],backgroundColor:'rgba(208,47,47,.18)',fill:{target:'origin'},pointRadius:0}]},
+  options:{scales:{y:yAx('Tank level (%)',{min:0,max:100}),x:{grid:{display:false}}},plugins:{legend:{position:'bottom'},tooltip:tipUnit('%')}}})}
+$$('#period button').forEach(b=>b.onclick=()=>{S.period=b.dataset.k;$$('#period button').forEach(x=>x.classList.toggle('on',x===b));drawCons()});
+function barColors(p,n){const P=[css('--blue'),css('--teal'),css('--purple'),css('--orange'),css('--pink'),css('--green'),css('--blue')];
+ if(p==='today')return Array.from({length:n},(_,h)=>h<6?P[2]:h<10?P[3]:h<17?P[1]:P[4]);
+ if(p==='7')return Array.from({length:n},(_,i)=>P[i%7]);
+ return Array.from({length:n},(_,i)=>i===n-1?P[3]:P[0])}
+function drawCons(){let labels,cur,prv,l1,l2,why;const p=S.period;
+ if(p==='today'){labels=HOURS;cur=flow.map((v,i)=>i===18?Math.round(v*5):v*60);prv=yest;l1='Today';l2='Yesterday';why='Each bar is the water used in one hour. Purple is night, orange is morning, teal is daytime and pink is evening. The tall purple bars at night are the suspected leak.'}
+ else if(p==='7'){labels=days30.slice(23).map((_,i)=>dWeek(dayAt(23+i)));cur=days30.slice(23);prv=days30.slice(16,23);l1='This week';l2='Previous week';why='Each bar is one day. Today is lower only because the day is not over yet.'}
+ else{labels=days30.map((_,i)=>dShort(dayAt(i)));cur=days30;prv=prev30;l1='Last 30 days';l2='Previous 30 days';why='Each bar is one day. The grey line shows the 30 days before, so you can see if usage is going down.'}
+ $('#consWhy').textContent=why;
+ chart('cvCons',{type:'bar',data:{labels,datasets:[{label:l1,data:cur,backgroundColor:barColors(p,cur.length),borderRadius:4},{type:'line',label:l2,data:prv,borderColor:css('--muted'),pointRadius:0,borderWidth:2,tension:.3}]},
+  options:{scales:{y:yAx('Litres (L)',{beginAtZero:true}),x:{grid:{display:false},ticks:{maxTicksLimit:10}}},plugins:{legend:{position:'bottom'},tooltip:tipUnit('L')}}})}
+setInterval(()=>{if($('#app').classList.contains('hide'))return;
+ const base=S.leak?88:42;flow[18]=Math.max(1,Math.round(base+(Math.random()-.5)*(S.leak?10:6)));
+ $('#cFlow').textContent=flow[18];
+ if(S.page==='dash'&&C.cvFlow){C.cvFlow.data.datasets[0].data=flow;C.cvFlow.data.datasets[1].data=leakPts();C.cvFlow.update('none')}},3000);
+
+/* ---------- water quality ---------- */
+const WQ={ph:[7.3,7.2,7.4,7.3,7.1,7.2,7.3],turb:[1.8,2.1,1.9,2.4,2.0,4.4,2.2],temp:[25.1,25.4,24.8,25.9,26.2,26.0,25.6]};
+$$('#wqTabs button').forEach(b=>b.onclick=()=>{S.wq=b.dataset.k;$$('#wqTabs button').forEach(x=>x.classList.toggle('on',x===b));drawWQ()});
+function drawWQ(){const k=S.wq,labels=WQ.ph.map((_,i)=>dShort(dayAt(23+i)));
+ const M={ph:{t:'pH',u:'pH',lo:cfg.phMin,hi:cfg.phMax,min:6,max:9,why:'pH tells you if the water is acidic or basic. The red dashed lines are the safe limits. The line stays between them.'},
+  turb:{t:'Turbidity',u:'NTU',lo:null,hi:cfg.turbMax,min:0,max:6,why:'Turbidity is how cloudy the water is. Lower is clearer. The yellow dot is yesterday, when it came close to the safe limit.'},
+  temp:{t:'Temperature',u:'°C',lo:cfg.tMin,hi:cfg.tMax,min:10,max:35,why:'This is the water temperature. The red dashed lines are the safe range. It stays comfortably inside.'}}[k];
+ $('#wqWhy').textContent=M.why;$('#wqNote').classList.toggle('hide',k!=='turb');
+ const col=css(k==='ph'?'--purple':k==='turb'?'--teal':'--orange');
+ const ds=[{label:M.t,data:WQ[k],borderColor:col,backgroundColor:col,tension:.3,pointRadius:k==='turb'?WQ[k].map((_,i)=>i===5?8:4):4,pointBackgroundColor:k==='turb'?WQ[k].map((_,i)=>i===5?'#e0a100':col):col}];
+ if(M.hi!=null)ds.push({label:'Highest safe value',data:labels.map(()=>M.hi),borderColor:css('--red'),borderDash:[6,4],pointRadius:0,borderWidth:2});
+ if(M.lo!=null)ds.push({label:'Lowest safe value',data:labels.map(()=>M.lo),borderColor:css('--red'),borderDash:[6,4],pointRadius:0,borderWidth:2});
+ chart('cvWQ',{type:'line',data:{labels,datasets:ds},options:{scales:{y:yAx(M.t+' ('+M.u+')',{min:M.min,max:M.max}),x:{grid:{display:false}}},plugins:{legend:{position:'bottom'},tooltip:tipUnit(M.u)}}})}
+
+/* ---------- alerts ---------- */
+function renderAlerts(){
+ const a1=alerts.find(a=>a.id===1).status;let txt,cls;
+ if(S.leak){txt='A new suspected leak was detected just now. Water is flowing much faster than usual. Please inspect.';cls='r'}
+ else if(a1==='Resolved'){txt='The suspected leak from last night is resolved. Flow is back to normal.';cls='g'}
+ else if(a1==='New'){txt='Last night between 1 AM and 4 AM, water kept flowing when nobody was using it. This is a suspected leak, please inspect.';cls='r'}
+ else{txt='Last night between 1 AM and 4 AM, water kept flowing when nobody was using it. This is a suspected leak, please inspect. It has been acknowledged. About 2,500 L was wasted.';cls='y'}
+ const b=$('#alSentence');b.textContent=txt;b.className='banner '+cls;
+ $('#alertList').innerHTML=alerts.map(a=>`<div class="alert"><span class="dot ${a.sev}" title="${a.sev} severity"></span><div><div class="t">${a.title}</div><div class="m">${a.when} | ${a.sev} severity<span class="chip ${a.status}">${a.status}</span></div></div><div class="acts"><button class="btn ghost sm" data-a="ack" data-id="${a.id}" ${a.status!=='New'?'disabled':''}>Acknowledge</button><button class="btn sm" data-a="res" data-id="${a.id}" ${a.status==='Resolved'?'disabled':''}>Resolve</button></div></div>`).join('')}
+$('#alertList').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const a=alerts.find(x=>x.id==b.dataset.id);
+ a.status=b.dataset.a==='ack'?'Acknowledged':'Resolved';toast(a.status==='Resolved'?'Alert resolved':'Alert acknowledged');
+ updateCards();renderAlerts();drawTL()});
+function drawTL(){const a1=alerts.find(a=>a.id===1).status,t=6;
+ const N=[24,24,22,24,24,24,15],X=[0,0,0,0,0,0,0],A=[0,0,0,0,0,0,0],R=[0,0,2,0,0,0,0];
+ if(a1==='Resolved')R[t]=3;else if(a1==='Acknowledged')A[t]=3;else X[t]=3;
+ if(S.leak){N[t]=14.5;X[t]+=0.5}
+ const labels=N.map((_,i)=>dWeek(dayAt(23+i))+' '+dShort(dayAt(23+i)));
+ const ds=(l,d,c)=>({label:l,data:d,backgroundColor:c,borderRadius:2});
+ chart('cvTL',{type:'bar',data:{labels,datasets:[ds('Normal',N,css('--green')),ds('Suspected leak',X,css('--red')),ds('Acknowledged',A,'#e0a100'),ds('Resolved',R,css('--blue'))]},
+  options:{scales:{x:{stacked:true,grid:{display:false}},y:yAx('Hours',{stacked:true,max:24})},plugins:{legend:{position:'bottom'},tooltip:tipUnit('hours')}}})}
+
+/* ---------- reports ---------- */
+function initReport(){$('#rFrom').min=$('#rTo').min=iso(dayAt(0));$('#rFrom').max=$('#rTo').max=iso(dayAt(29));$('#rFrom').value=iso(dayAt(23));$('#rTo').value=iso(dayAt(29));drawReport()}
+function reportRows(){const f=$('#rFrom').value,t=$('#rTo').value;
+ return days30.map((u,i)=>({d:dayAt(i),iso:iso(dayAt(i)),used:u,peak:peak30[i],wasted:waste30[i]})).filter(r=>r.iso>=f&&r.iso<=t)}
+function drawReport(){const rows=reportRows();
+ $('#rBody').innerHTML=rows.length?rows.map(r=>`<tr><td>${dWeek(r.d)}, ${dShort(r.d)}</td><td class="n">${fmt(r.used)}</td><td class="n">${fmt(cfg.target)}</td><td class="n">${r.peak}</td><td class="n">${fmt(r.wasted)}</td></tr>`).join(''):'<tr><td colspan="5" class="muted">No days in this range. Pick dates from the last 30 days.</td></tr>'}
+$('#rFrom').onchange=$('#rTo').onchange=drawReport;
+$('#rDl').onclick=()=>{const rows=[['Date','Water used (L)','Daily target (L)','Peak flow (L/min)','Water wasted (L)'],...reportRows().map(r=>[r.iso,r.used,cfg.target,r.peak,r.wasted])];
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download='aquaguard-demo-report.csv';a.click();toast('Report downloaded')};
+
+/* ---------- settings and demo controls ---------- */
+function drawSettings(){renderFields($('#st_f1'),F1,'st');renderFields($('#st_f2'),F2,'st');$('#st_err').textContent='';$('#leakState').textContent=S.leak?'ON':'OFF';
+ const rk=[['Green Valley Homes',88],['Lakeview Towers',81],[cfg.name,S.score],['Palm Residency',69],['Royal Heights',60]].sort((a,b)=>b[1]-a[1]);
+ $('#rank').innerHTML=rk.map((r,i)=>`<tr class="${r[0]===cfg.name?'me':''}"><td>${i+1}</td><td>${r[0]}${r[0]===cfg.name?' (you)':''}</td><td class="n">${r[1]} / 100</td></tr>`).join('')}
+$('#stSave').onclick=()=>{const e=validate(F1,'st')||validate(F2,'st');$('#st_err').textContent=e;if(e)return;readFields(F1,'st');readFields(F2,'st');updateTop();updateCards();toast('Settings saved')};
+function after(){updateCards();if(S.page==='dash')drawDash();else if(S.page==='al'){renderAlerts();drawTL()};$('#leakState').textContent=S.leak?'ON':'OFF'}
+$('#bStart').onclick=()=>{if(S.leak)return toast('Demo leak is already on');S.leak=true;flow[17]=60;flow[18]=88;tank[17]=66;tank[18]=62;S.score=61;
+ S.demoId=Date.now();alerts.unshift({id:S.demoId,title:'Unusual flow detected right now: suspected leak, please inspect',when:'Just now',sev:'High',status:'New'});after();toast('Demo leak started')};
+$('#bStop').onclick=()=>{if(!S.leak)return toast('Demo leak is already off');S.leak=false;flow[17]=flowBase[17];flow[18]=42;tank[17]=tankBase[17];tank[18]=tankBase[18];S.score=72;
+ const d=alerts.find(a=>a.id===S.demoId);if(d)d.status='Resolved';after();toast('Demo leak stopped. Back to normal.')};
+$('#bReset').onclick=()=>{S.leak=false;S.score=72;S.demoId=null;flow=flowBase.slice();tank=tankBase.slice();alerts=initialAlerts();cfg={...initialCfg};after();drawSettings();updateTop();toast('Demo reset')};
+</script>
+</body>
+</html>
